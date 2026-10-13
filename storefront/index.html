@@ -1,8 +1,23 @@
 <title>Twenty Sides Shop</title>
+<!--
+  Twenty Sides: a single-file demo storefront for D&D dice and table accessories.
+
+  Everything lives in this file, in three parts:
+    1. <style>   design tokens (colors, fonts) for light and dark themes, then component styles.
+    2. Markup    a static shell: header, intro, filter controls, an empty product grid,
+                 and the cart drawer. The grid and drawer contents are filled in by script.
+    3. <script>  the product catalog (data), SVG product art, cart state saved to
+                 localStorage, and the render functions that draw the grid and cart.
+
+  There is no build step and no framework. See README.md in this folder for a full walkthrough.
+-->
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Schibsted+Grotesk:wght@500;700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
 <style>
+/* ===== Design tokens =====
+   Every color and font is a CSS variable, so components never hard-code a color and
+   the dark theme only has to redefine the variables. */
 /* Layout: sticky header, filter row, a product grid that collapses to one column on phones, and a cart drawer from the right. */
 :root {
   --bg: #fbfbfc;
@@ -21,6 +36,10 @@
   --font-mono: "IBM Plex Mono", ui-monospace, "SFMono-Regular", Menlo, monospace;
   --radius: 10px;
 }
+/* Dark theme. Applied in two cases:
+   - the viewer's OS is in dark mode and the page has not been forced light (data-theme="light"), or
+   - the page is explicitly forced dark with data-theme="dark" on <html>.
+   Both blocks hold the same values; color-scheme: dark makes native inputs and scrollbars dark too. */
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme="light"]) {
     --bg: #111318; --surface: #171a20; --panel: #1f232b; --line: #2c313b;
@@ -36,6 +55,7 @@
   color-scheme: dark;
 }
 
+/* ===== Base ===== */
 * { box-sizing: border-box; }
 body {
   background: var(--bg); color: var(--fg);
@@ -45,10 +65,12 @@ button, input, select { font: inherit; color: inherit; }
 button { cursor: pointer; }
 :focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
 
+/* .wrap centers content and supplies the side gutter (24px desktop, 16px phones). */
 .wrap { max-width: 1180px; margin: 0 auto; padding-inline: 24px; }
 @media (max-width: 520px) { .wrap { padding-inline: 16px; } }
 
-/* Header */
+/* ===== Header =====
+   Sticky to the top. The safe-area inset keeps it below a phone's notch or status bar. */
 header.top {
   position: sticky; top: env(safe-area-inset-top, 0px); z-index: 20;
   background: color-mix(in srgb, var(--bg) 95%, transparent);
@@ -76,12 +98,13 @@ header.top {
   border-radius: 999px; background: var(--accent); color: var(--accent-fg);
   display: inline-grid; place-items: center; font-variant-numeric: tabular-nums;
 }
+/* On phones, hide the wordmark and the word "Cart" so the search box has room. */
 @media (max-width: 520px) {
   .brand b { display: none; }
   .cart-btn .label { display: none; }
 }
 
-/* Intro */
+/* ===== Intro ===== */
 .intro { padding-block: 40px 20px; display: grid; gap: 10px; }
 .eyebrow { font-family: var(--font-mono); font-size: 12px; letter-spacing: .08em; text-transform: uppercase; color: var(--accent); }
 .intro h1 {
@@ -92,9 +115,10 @@ header.top {
 .intro p { margin: 0; color: var(--muted); max-width: 60ch; }
 .perks { display: flex; flex-wrap: wrap; gap: 8px 20px; margin-top: 6px; font-size: 13px; color: var(--muted); }
 .perks span { display: inline-flex; align-items: center; gap: 6px; }
+/* Small accent dot before each perk. */
 .perks span::before { content: ""; width: 6px; height: 6px; border-radius: 50%; background: var(--accent); }
 
-/* Filters */
+/* ===== Filter chips and sort ===== */
 .controls {
   display: flex; flex-wrap: wrap; align-items: center; gap: 12px;
   padding-block: 12px 20px;
@@ -105,16 +129,19 @@ header.top {
   background: var(--surface); font-size: 14px; color: var(--fg);
 }
 .chip:hover { border-color: var(--muted); }
+/* The selected category chip. aria-pressed is set by renderChips() in the script. */
 .chip[aria-pressed="true"] { background: var(--fg); color: var(--bg); border-color: var(--fg); }
 .chip .n { font-family: var(--font-mono); font-size: 12px; opacity: .6; margin-left: 4px; }
 .sort { display: flex; align-items: center; gap: 8px; font-size: 14px; color: var(--muted); }
+/* On narrow screens the chips stay in one row and scroll sideways instead of stacking. */
 @media (max-width: 640px) {
   .chips { flex: 1 1 100%; flex-wrap: nowrap; overflow-x: auto; padding-bottom: 4px; scrollbar-width: none; }
   .chip { white-space: nowrap; flex-shrink: 0; }
 }
 .sort select { padding: 7px 10px; border-radius: 8px; border: 1px solid var(--line); background: var(--surface); }
 
-/* Grid */
+/* ===== Product grid =====
+   auto-fill makes as many 240px+ columns as fit; phones get two columns, very narrow phones one. */
 .grid {
   display: grid; gap: 20px;
   grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
@@ -123,12 +150,15 @@ header.top {
 @media (max-width: 560px) { .grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; } }
 @media (max-width: 380px) { .grid { grid-template-columns: 1fr; } }
 .card { display: flex; flex-direction: column; gap: 12px; min-width: 0; }
+/* .media is the square picture panel on each card. It is the positioning parent for the badge,
+   the roll button and the roll result, which sit in its corners. */
 .media {
   position: relative; aspect-ratio: 1 / 1; max-width: 100%;
   background: var(--panel); border-radius: var(--radius);
   display: grid; place-items: center; overflow: hidden;
 }
 .media svg.art { width: 62%; height: 62%; }
+/* Test-roll animation: roll() adds .rolling for one spin, then removes it. */
 .media.rolling svg.art { animation: tumble .45s cubic-bezier(.2,.8,.2,1); }
 @keyframes tumble { 50% { transform: rotate(300deg) scale(.88); } to { transform: rotate(540deg); } }
 .badge {
@@ -136,6 +166,7 @@ header.top {
   font-size: 12px; font-weight: 500; padding: 3px 8px; border-radius: 999px;
   background: var(--surface); color: var(--fg); border: 1px solid var(--line);
 }
+/* Scarcity badges ("Only 3 left") use the accent color. */
 .badge.low { color: var(--accent); border-color: currentColor; }
 .roll-btn {
   position: absolute; bottom: 10px; right: 10px;
@@ -149,6 +180,7 @@ header.top {
   font-family: var(--font-mono); font-size: 12px; font-variant-numeric: tabular-nums;
   padding: 5px 10px; border-radius: 999px; background: var(--fg); color: var(--bg);
 }
+/* Natural 20 or a d% roll of 100. */
 .roll-out.crit { background: var(--accent); color: var(--accent-fg); }
 .info { display: grid; gap: 2px; min-width: 0; }
 .info h3 { margin: 0; font-size: 15px; font-weight: 600; line-height: 1.3; }
@@ -160,11 +192,15 @@ header.top {
   background: transparent; font-size: 14px; font-weight: 500; white-space: nowrap;
 }
 .add:hover { background: var(--fg); color: var(--bg); }
+/* Brief confirmation state after clicking "Add to cart". */
 .add.added { background: var(--good); border-color: var(--good); color: #fff; }
+/* Shown when a search matches nothing. */
 .empty { grid-column: 1 / -1; padding: 48px 0; text-align: center; color: var(--muted); }
 .empty button { margin-top: 10px; }
 
-/* Drawer */
+/* ===== Cart drawer =====
+   The drawer is always in the DOM; it sits off-screen (translateX(100%)) and slides in when
+   .open is added. The scrim is the dimmed backdrop behind it. */
 .scrim { position: fixed; inset: 0; background: rgba(10, 12, 16, .4); z-index: 40; }
 .drawer {
   position: fixed; top: 0; right: 0; bottom: 0; z-index: 41;
@@ -178,11 +214,13 @@ header.top {
 .drawer-head h2 { margin: 0; font-family: var(--font-display); font-size: 20px; }
 .icon-btn { width: 36px; height: 36px; border-radius: 50%; border: 1px solid var(--line); background: var(--surface); display: grid; place-items: center; }
 .icon-btn svg { width: 16px; height: 16px; }
+/* Free-shipping message and progress bar at the top of the drawer. */
 .ship { padding: 14px 20px; border-bottom: 1px solid var(--line); font-size: 13px; color: var(--muted); display: grid; gap: 8px; }
 .ship strong { color: var(--fg); font-weight: 600; }
 .bar { height: 4px; border-radius: 999px; background: var(--panel); overflow: hidden; }
 .bar i { display: block; height: 100%; background: var(--accent); transition: width .3s ease; }
 .lines { flex: 1; overflow-y: auto; padding: 8px 20px; }
+/* One cart line: thumbnail | name + quantity stepper | price + remove. */
 .line { display: grid; grid-template-columns: 64px 1fr auto; gap: 12px; align-items: center; padding-block: 12px; border-bottom: 1px solid var(--line); }
 .line:last-child { border-bottom: 0; }
 .thumb { width: 64px; height: 64px; border-radius: 8px; background: var(--panel); display: grid; place-items: center; }
@@ -196,6 +234,7 @@ header.top {
 .line-right .price { font-size: 14px; }
 .remove { border: 0; background: none; padding: 0; font-size: 12px; color: var(--muted); text-decoration: underline; }
 .drawer-empty { padding: 48px 20px; text-align: center; color: var(--muted); }
+/* Subtotal, shipping, total and the checkout button, pinned to the bottom of the drawer. */
 .totals { border-top: 1px solid var(--line); padding: 16px 20px 20px; display: grid; gap: 8px; }
 .row { display: flex; justify-content: space-between; font-size: 14px; }
 .row span:last-child { font-family: var(--font-mono); font-variant-numeric: tabular-nums; }
@@ -206,11 +245,13 @@ header.top {
 }
 .checkout:disabled { opacity: .45; cursor: not-allowed; }
 .note { font-size: 12px; color: var(--muted); text-align: center; margin: 0; }
+/* Order-confirmed screen that replaces the cart after checkout. */
 .done { padding: 40px 24px; text-align: center; display: grid; gap: 10px; justify-items: center; }
 .done h3 { margin: 0; font-family: var(--font-display); font-size: 22px; }
 .done p { margin: 0; color: var(--muted); max-width: 32ch; }
 .done .art { width: 72px; height: 72px; }
 
+/* Short status message at the bottom of the screen, e.g. "Added Brass d20". */
 .toast {
   position: fixed; left: 50%; bottom: calc(20px + env(safe-area-inset-bottom, 0px)); z-index: 50;
   transform: translateX(-50%); background: var(--fg); color: var(--bg);
@@ -219,15 +260,18 @@ header.top {
 }
 footer { border-top: 1px solid var(--line); padding-block: 20px 28px; color: var(--muted); font-size: 13px; }
 
+/* Respect the OS "reduce motion" setting: no slides, no spin. */
 @media (prefers-reduced-motion: reduce) {
   .drawer, .bar i { transition: none; }
   .media.rolling svg.art { animation: none; }
 }
 </style>
 
+<!-- ===== Header: logo, search box, cart button ===== -->
 <header class="top">
   <div class="wrap top-inner">
     <a class="brand" href="#top" aria-label="Twenty Sides home">
+      <!-- Filled with a d20 drawing by the script, using the same art() function as the products. -->
       <svg id="logo-die" viewBox="0 0 120 120" aria-hidden="true"></svg>
       <b>Twenty Sides</b>
     </a>
@@ -243,6 +287,7 @@ footer { border-top: 1px solid var(--line); padding-block: 20px 28px; color: var
   </div>
 </header>
 
+<!-- ===== Main: intro, filters, product grid ===== -->
 <main class="wrap" id="top">
   <section class="intro">
     <span class="eyebrow">Dice &amp; table gear</span>
@@ -252,6 +297,7 @@ footer { border-top: 1px solid var(--line); padding-block: 20px 28px; color: var
   </section>
 
   <div class="controls">
+    <!-- Category chips are generated by renderChips(). -->
     <div class="chips" id="chips" role="group" aria-label="Filter by category"></div>
     <label class="sort">Sort
       <select id="sort">
@@ -263,6 +309,7 @@ footer { border-top: 1px solid var(--line); padding-block: 20px 28px; color: var
     </label>
   </div>
 
+  <!-- Product cards are generated by renderGrid(). -->
   <section class="grid" id="grid" aria-live="polite"></section>
 </main>
 
@@ -270,6 +317,8 @@ footer { border-top: 1px solid var(--line); padding-block: 20px 28px; color: var
   <div class="wrap">Twenty Sides is a demo storefront. Products and prices are examples and no orders are placed.</div>
 </footer>
 
+<!-- ===== Cart drawer and toast =====
+     #drawer-body is redrawn by renderCart() whenever the cart changes. -->
 <div class="scrim" id="scrim" hidden></div>
 <aside class="drawer" id="drawer" aria-label="Cart" aria-hidden="true">
   <div class="drawer-head">
@@ -283,8 +332,14 @@ footer { border-top: 1px solid var(--line); padding-block: 20px 28px; color: var
 <div class="toast" id="toast" role="status" hidden></div>
 
 <script>
+// Everything is wrapped in an arrow function that runs immediately, so none of these
+// names leak into the global scope.
 (() => {
-  const FREE_SHIP = 50, SHIP_FEE = 5;
+  // ===== Store settings =====
+  const FREE_SHIP = 50;  // subtotal (USD) at which shipping becomes free
+  const SHIP_FEE = 5;    // flat shipping fee (USD) below that threshold
+
+  // Filter categories, in the order the chips appear. "all" is a special case meaning no filter.
   const CATS = [
     { id: "all", label: "All" },
     { id: "sets", label: "Dice sets" },
@@ -293,7 +348,21 @@ footer { border-top: 1px solid var(--line); padding-block: 20px 28px; color: var
     { id: "storage", label: "Bags & storage" },
     { id: "gm", label: "GM gear" },
   ];
-  // pal: [light face, base face, dark face, numeral ink]
+  // ===== Product catalog =====
+  // Each product has:
+  //   id     unique key; also the key used in the saved cart
+  //   name   display name
+  //   cat    category id from CATS above
+  //   price  price in USD
+  //   spec   short spec line shown under the name (piece count, size, material)
+  //   art    which drawing art() should use: d4, d6, d8, d10, d12, d20, tray, fold,
+  //          tower, bag, vault, screen or tracker
+  //   pal    four colors for the drawing: [light face, base face, dark face/outline, ink].
+  //          "ink" is used for numerals, pips and accent details.
+  //   roll   optional. Adds a test-roll button: 20 rolls a d20, 100 rolls d%,
+  //          "4d6" rolls four d6 and keeps the highest three (a character stat roll).
+  //   badge  optional corner label; low: true colors it as a scarcity warning.
+  // The array order is the "Featured" sort order.
   const PRODUCTS = [
     { id: "ember", name: "Ember Resin Set", cat: "sets", price: 24, spec: "7 pcs · 16 mm · swirl resin", art: "d20", pal: ["#F6A25E","#E0662F","#9C3A17","#FFF4E8"], roll: 20, badge: "Bestseller" },
     { id: "glacier", name: "Glacier Glass Set", cat: "sets", price: 42, spec: "7 pcs · 16 mm · K9 glass", art: "d12", pal: ["#DCF0F8","#9CCBE2","#5A93B5","#0E3A55"], roll: 20 },
@@ -313,18 +382,29 @@ footer { border-top: 1px solid var(--line); padding-block: 20px 28px; color: var
     { id: "screen", name: "Four-Panel GM Screen", cat: "gm", price: 34, spec: "landscape · 4 × 8.5 × 11 in", art: "screen", pal: ["#E8E3D8","#3A3D44","#1E2024","#A3213A"] },
     { id: "tracker", name: "Initiative Tracker", cat: "gm", price: 15, spec: "magnetic · 8 tokens + dry-erase", art: "tracker", pal: ["#F2F3F6","#5D6270","#2A2D35","#A3213A"] },
   ];
+  // Lookup table: product id -> product object.
   const byId = Object.fromEntries(PRODUCTS.map(p => [p.id, p]));
 
-  // ---------- Art ----------
+  // ===== Product art =====
+  // Every product picture is an inline SVG drawn from simple polygons on a 120 x 120 canvas,
+  // so the page needs no image files. The helpers below build SVG markup as strings.
+
+  // Point at radius r and angle deg (0 = right, -90 = straight up) around center (cx, cy).
+  // Used to place the corners of regular shapes such as the d20's hexagon outline.
   const pt = (r, deg, cx = 60, cy = 60) => {
     const a = deg * Math.PI / 180;
     return [+(cx + r * Math.cos(a)).toFixed(1), +(cy + r * Math.sin(a)).toFixed(1)];
   };
+  // A filled polygon with a rounded-join outline. pts is an array of [x, y] pairs.
   const poly = (pts, fill, stroke) => `<polygon points="${pts.map(p => p.join(",")).join(" ")}" fill="${fill}" stroke="${stroke}" stroke-width="1.5" stroke-linejoin="round"/>`;
+  // Centered text, used for the number on a die's front face.
   const label = (txt, x, y, ink, size = 16) => `<text x="${x}" y="${y}" text-anchor="middle" dominant-baseline="central" font-family="IBM Plex Mono, monospace" font-weight="500" font-size="${size}" fill="${ink}">${txt}</text>`;
 
+  // Returns the SVG markup (no outer <svg> tag) for one drawing.
+  // Dice are drawn as a dark outline shape with lighter facets on top, which reads as 3D.
   function art(kind, [lt, base, dk, ink]) {
-    const s = dk;
+    const s = dk; // outline color
+    // d20: hexagon silhouette with a front triangle; the facets join the triangle to the hexagon corners.
     if (kind === "d20") {
       const P = [-90, -30, 30, 90, 150, 210].map(d => pt(48, d));
       const T = [-90, 30, 150].map(d => pt(26, d));
@@ -333,6 +413,7 @@ footer { border-top: 1px solid var(--line); padding-block: 20px 28px; color: var
         + poly([P[3], P[4], T[2]], dk, s) + poly([P[5], P[0], T[0]], lt, s)
         + poly(T, lt, s) + label("20", 60, 64, ink, 15);
     }
+    // d12: ten-sided outline with a front pentagon and five surrounding faces.
     if (kind === "d12") {
       const O = Array.from({ length: 10 }, (_, k) => pt(48, -90 + 36 * k));
       const I = Array.from({ length: 5 }, (_, k) => pt(28, -90 + 72 * k));
@@ -343,6 +424,7 @@ footer { border-top: 1px solid var(--line); padding-block: 20px 28px; color: var
       }
       return out + poly(I, lt, s) + label("12", 60, 62, ink, 15);
     }
+    // d10: kite shape with a front kite face and four side facets.
     if (kind === "d10") {
       const top = [60, 10], r = [104, 56], bot = [60, 110], l = [16, 56];
       const il = [36, 64], ir = [84, 64], ic = [60, 76];
@@ -352,6 +434,7 @@ footer { border-top: 1px solid var(--line); padding-block: 20px 28px; color: var
         + poly([top, l, il], base, s) + poly([top, r, ir], dk, s)
         + label("0", 60, 52, ink, 16);
     }
+    // d8: diamond outline with an upward front triangle and a downward one beneath it.
     if (kind === "d8") {
       const top = [60, 12], r = [100, 64], bot = [60, 108], l = [20, 64];
       const a = [30, 74], b = [90, 74];
@@ -360,6 +443,7 @@ footer { border-top: 1px solid var(--line); padding-block: 20px 28px; color: var
         + poly([top, a, l], base, s) + poly([top, r, b], dk, s)
         + label("8", 60, 58, ink, 18);
     }
+    // d6: isometric cube (top, left and right faces) with pips on two faces.
     if (kind === "d6") {
       const P = [-90, -30, 30, 90, 150, 210].map(d => pt(46, d)), C = [60, 60];
       const pip = (x, y) => `<circle cx="${x}" cy="${y}" r="4" fill="${ink}"/>`;
@@ -367,11 +451,13 @@ footer { border-top: 1px solid var(--line); padding-block: 20px 28px; color: var
         + pip(60, 37) + pip(46, 37) + pip(74, 37)
         + pip(32, 72) + pip(44, 86);
     }
+    // d4: triangle split into three facets that meet at an off-center point.
     if (kind === "d4") {
       const A = [60, 12], B = [106, 98], Cc = [14, 98], M = [60, 74];
       return poly([A, B, Cc], base, s) + poly([A, M, Cc], lt, s) + poly([A, B, M], dk, s) + poly([Cc, M, B], base, s)
         + label("4", 46, 64, ink, 16);
     }
+    // Accessories. Trays reuse art("d20") scaled down to show a die sitting in them.
     if (kind === "tray") {
       const O = [-90, -30, 30, 90, 150, 210].map(d => pt(50, d, 60, 64));
       const I = [-90, -30, 30, 90, 150, 210].map(d => pt(40, d, 60, 64));
@@ -426,24 +512,37 @@ footer { border-top: 1px solid var(--line); padding-block: 20px 28px; color: var
       });
       return out;
     }
-    return "";
+    return ""; // unknown kind: draw nothing
   }
+  // Wraps art() in a full <svg> element for a product. Pass cls = "" for the small cart thumbnails.
   const svg = (p, cls = "art") => `<svg class="${cls}" viewBox="0 0 120 120" aria-hidden="true">${art(p.art, p.pal)}</svg>`;
+  // The header logo is a d20 in the accent colors.
   document.getElementById("logo-die").innerHTML = art("d20", ["#E0566F", "#A3213A", "#6E1427", "#FFFFFF"]);
 
-  // ---------- State ----------
+  // ===== State =====
+  // localStorage wrapper. Storage can be unavailable (private windows, blocked site data),
+  // so every call is wrapped in try/catch and falls back to the default value.
   const store = {
     get(k, d) { try { const v = localStorage.getItem(k); return v ? JSON.parse(v) : d; } catch { return d; } },
     set(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch {} },
   };
+  // The cart maps product id -> quantity, e.g. { ember: 2, tower: 1 }. It is saved under "ts-cart".
   let cart = store.get("ts-cart", {});
+  // Drop saved entries that no longer make sense (a removed product, or a bad quantity).
   for (const id of Object.keys(cart)) if (!byId[id] || !(cart[id] > 0)) delete cart[id];
+  // Current catalog view: selected category, sort order and lowercased search text.
   let cat = "all", sort = "featured", q = "";
   const money = n => "$" + n.toFixed(2);
+  // Call after every cart change: persists the cart and redraws the drawer and header count.
   const saveCart = () => { store.set("ts-cart", cart); renderCart(); };
 
-  // ---------- Catalog ----------
+  // ===== Catalog: filters, search, sort and product cards =====
+  // The UI is redrawn from state by replacing innerHTML. With 17 products this is instant
+  // and keeps the code simple. Clicks are handled with event delegation: one listener on
+  // the container reads data-* attributes from the clicked button, so the listeners keep
+  // working after each redraw.
   const chips = document.getElementById("chips");
+  // Draws the category chips with their product counts and marks the selected one.
   function renderChips() {
     chips.innerHTML = CATS.map(c => {
       const n = c.id === "all" ? PRODUCTS.length : PRODUCTS.filter(p => p.cat === c.id).length;
@@ -458,13 +557,16 @@ footer { border-top: 1px solid var(--line); padding-block: 20px 28px; color: var
   document.getElementById("q").addEventListener("input", e => { q = e.target.value.trim().toLowerCase(); renderGrid(); });
 
   const grid = document.getElementById("grid");
+  // Draws the product cards that match the current category and search text, in the current sort order.
   function renderGrid() {
     let list = PRODUCTS.filter(p => (cat === "all" || p.cat === cat)
       && (!q || (p.name + " " + p.spec).toLowerCase().includes(q)));
+    // "featured" keeps catalog order. Sorting copies the list so PRODUCTS itself is never reordered.
     if (sort === "price-asc") list = [...list].sort((a, b) => a.price - b.price);
     if (sort === "price-desc") list = [...list].sort((a, b) => b.price - a.price);
     if (sort === "name") list = [...list].sort((a, b) => a.name.localeCompare(b.name));
     if (!list.length) {
+      // The search text is echoed back, so strip characters that could inject HTML.
       grid.innerHTML = `<div class="empty">Nothing matches “${q.replace(/[<&"]/g, "")}”.<br><button class="chip" id="clear">Clear search</button></div>`;
       return;
     }
@@ -485,6 +587,7 @@ footer { border-top: 1px solid var(--line); padding-block: 20px 28px; color: var
         </div>
       </article>`).join("");
   }
+  // One click handler for every card button: "Clear search", "Add to cart" and "Roll".
   grid.addEventListener("click", e => {
     if (e.target.id === "clear") { q = ""; document.getElementById("q").value = ""; renderGrid(); return; }
     const add = e.target.closest("[data-add]");
@@ -492,6 +595,7 @@ footer { border-top: 1px solid var(--line); padding-block: 20px 28px; color: var
       const id = add.dataset.add;
       cart[id] = (cart[id] || 0) + 1; saveCart();
       add.textContent = "Added"; add.classList.add("added");
+      // Show "Added" for about a second, then restore the button.
       setTimeout(() => { add.textContent = "Add to cart"; add.classList.remove("added"); }, 1100);
       toast(`Added ${byId[id].name}`);
       return;
@@ -500,11 +604,16 @@ footer { border-top: 1px solid var(--line); padding-block: 20px 28px; color: var
     if (r) roll(r);
   });
 
+  // ===== Test rolls =====
+  // Random integer from 1 to n, like rolling an n-sided die.
   const d = n => 1 + Math.floor(Math.random() * n);
+  // Rolls the dice for one product card, plays the spin animation, then shows the result
+  // in the card's bottom-left corner.
   function roll(btn) {
     const p = byId[btn.dataset.roll], media = btn.closest(".media");
     let text, crit = false;
     if (p.roll === "4d6") {
+      // 4d6 drop lowest: sort high to low and add the top three.
       const rs = [d(6), d(6), d(6), d(6)].sort((a, b) => b - a);
       text = `${rs.join(" ")} → ${rs[0] + rs[1] + rs[2]}`;
     } else if (p.roll === 100) {
@@ -513,8 +622,11 @@ footer { border-top: 1px solid var(--line); padding-block: 20px 28px; color: var
       const v = d(20); crit = v === 20;
       text = v === 20 ? "Natural 20" : v === 1 ? "Natural 1" : `Rolled ${v}`;
     }
-    media.querySelector(".roll-out")?.remove();
+    media.querySelector(".roll-out")?.remove(); // clear the previous result
+    // Removing the class and reading offsetWidth forces a reflow, so the animation
+    // restarts even when the button is clicked again mid-spin.
     media.classList.remove("rolling"); void media.offsetWidth; media.classList.add("rolling");
+    // Show the result after the 450ms spin, or right away when reduced motion is on.
     setTimeout(() => {
       media.classList.remove("rolling");
       const out = document.createElement("span");
@@ -524,9 +636,11 @@ footer { border-top: 1px solid var(--line); padding-block: 20px 28px; color: var
     }, matchMedia("(prefers-reduced-motion: reduce)").matches ? 0 : 450);
   }
 
-  // ---------- Cart ----------
+  // ===== Cart drawer =====
   const drawer = document.getElementById("drawer"), scrim = document.getElementById("scrim"), body = document.getElementById("drawer-body");
+  // True right after checkout, so the drawer shows the confirmation screen instead of the cart.
   let placed = false;
+  // Opening moves keyboard focus into the drawer; Escape, the close button or the backdrop close it.
   function openCart() { placed = false; renderCart(); scrim.hidden = false; drawer.classList.add("open"); drawer.setAttribute("aria-hidden", "false"); document.getElementById("close-cart").focus(); }
   function closeCart() { scrim.hidden = true; drawer.classList.remove("open"); drawer.setAttribute("aria-hidden", "true"); }
   document.getElementById("open-cart").addEventListener("click", openCart);
@@ -534,6 +648,8 @@ footer { border-top: 1px solid var(--line); padding-block: 20px 28px; color: var
   scrim.addEventListener("click", closeCart);
   document.addEventListener("keydown", e => { if (e.key === "Escape" && drawer.classList.contains("open")) closeCart(); });
 
+  // Redraws the header cart count and the drawer contents: the free-shipping bar, one line per
+  // product, and the totals. Called on load and after every cart change.
   function renderCart() {
     const ids = Object.keys(cart);
     const count = ids.reduce((n, id) => n + cart[id], 0);
@@ -546,6 +662,7 @@ footer { border-top: 1px solid var(--line); padding-block: 20px 28px; color: var
         <button class="chip" id="keep">Keep shopping</button></div>`;
       return;
     }
+    // Shipping is free on an empty cart or once the subtotal reaches FREE_SHIP.
     const sub = ids.reduce((s, id) => s + byId[id].price * cart[id], 0);
     const ship = sub === 0 || sub >= FREE_SHIP ? 0 : SHIP_FEE;
     const pct = Math.min(100, sub / FREE_SHIP * 100);
@@ -574,6 +691,8 @@ footer { border-top: 1px solid var(--line); padding-block: 20px 28px; color: var
         <p class="note">Demo store. Checkout does not charge anything.</p>
       </div>`;
   }
+  // One click handler for every drawer button: quantity +/-, Remove, Check out and Keep shopping.
+  // Checkout is a demo: it empties the cart and shows a confirmation. Nothing is sent anywhere.
   body.addEventListener("click", e => {
     const t = e.target.closest("button"); if (!t) return;
     if (t.dataset.inc) { cart[t.dataset.inc]++; saveCart(); }
@@ -583,6 +702,8 @@ footer { border-top: 1px solid var(--line); padding-block: 20px 28px; color: var
     else if (t.id === "keep") { placed = false; closeCart(); renderCart(); }
   });
 
+  // Shows a short message at the bottom of the screen for 1.6 seconds.
+  // tt holds the hide timer so a new toast resets it instead of hiding early.
   let tt;
   function toast(msg) {
     const el = document.getElementById("toast");
@@ -590,6 +711,7 @@ footer { border-top: 1px solid var(--line); padding-block: 20px 28px; color: var
     clearTimeout(tt); tt = setTimeout(() => { el.hidden = true; }, 1600);
   }
 
+  // ===== Start =====
   renderChips(); renderGrid(); renderCart();
 })();
 </script>
