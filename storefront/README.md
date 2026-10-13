@@ -1,12 +1,18 @@
 # Twenty Sides storefront
 
-A demo online shop for D&D dice and table accessories. It is a single HTML file, `index.html`, with no build step, no framework and no image files.
+A demo online shop for D&D dice and table accessories. It is three static files with no build step, no framework and no image files:
+
+| File | Contents |
+| --- | --- |
+| `index.html` | The markup. It loads `styles.css` and `app.js`. |
+| `styles.css` | All styling: design tokens for light and dark themes, then component styles. |
+| `app.js` | All behavior: the product catalog, product drawings, cart and rendering. |
 
 Live page: https://claude.ai/artifact/XMVCeNVSqyYdztuNRa9jF9
 
 ## Running it locally
 
-Open `storefront/index.html` in a browser. Nothing needs to be installed. The only network requests are for Google Fonts, and the page falls back to system fonts without them.
+Open `storefront/index.html` in a browser. Keep the three files together in the same folder, since the page loads the other two by relative path. Nothing needs to be installed. The only network requests are for Google Fonts, and the page falls back to system fonts without them.
 
 ## What the page does
 
@@ -24,18 +30,16 @@ Open `storefront/index.html` in a browser. Nothing needs to be installed. The on
 | Themes | Light and dark, following the system setting. |
 | Phones | Two-column grid, chips scroll sideways, and the header hides the wordmark to make room for search. |
 
-## How the file is organized
+## How the code is organized
 
-`index.html` has three parts, in this order.
-
-### 1. Styles (`<style>`)
+### 1. Styles (`styles.css`)
 
 - **Design tokens.** The `:root` block defines every color (`--bg`, `--fg`, `--accent`…) and font (`--font-display`, `--font-body`, `--font-mono`) as a CSS variable. Components use only these variables, never raw colors.
 - **Dark theme.** Two blocks redefine the same variables with dark values. The first applies when the OS is in dark mode; the second applies when `data-theme="dark"` is set on `<html>`. Changing a color means editing it in `:root` and, for dark mode, in both dark blocks.
 - **Components.** Each section of the page has its own commented block: header, intro, filter chips, product grid and cards, cart drawer, toast.
 - **Reduced motion.** The last block turns off the drawer slide and the roll spin for people who have "reduce motion" turned on.
 
-### 2. Markup
+### 2. Markup (`index.html`)
 
 A static shell with empty containers that the script fills in:
 
@@ -47,7 +51,9 @@ A static shell with empty containers that the script fills in:
 | `#drawer-body` (cart contents) | `renderCart()` |
 | `#toast` (status message) | `toast()` |
 
-### 3. Script (`<script>`)
+### 3. Script (`app.js`)
+
+`index.html` loads it at the end of the page, after all the containers below exist, so the script can find them as soon as it runs.
 
 All code runs inside one function that runs immediately, so nothing leaks into the global scope. The sections, top to bottom:
 
@@ -77,7 +83,7 @@ The click handlers are attached once, to the containers (`#chips`, `#grid`, `#dr
 
 ## Common changes
 
-**Add a product.** Add an object to `PRODUCTS`:
+**Add a product.** Add an object to `PRODUCTS` in `app.js`:
 
 ```js
 { id: "ruby-set", name: "Ruby Resin Set", cat: "sets", price: 26,
@@ -97,13 +103,13 @@ The click handlers are attached once, to the containers (`#chips`, `#grid`, `#dr
 | `roll` | Optional. `20`, `100` or `"4d6"` adds a Roll button. |
 | `badge` | Optional corner label. Add `low: true` to show it in the accent color as a stock warning. |
 
-**Add a category.** Add `{ id, label }` to `CATS` and use that id as `cat` on some products. The chip and its count appear on their own.
+**Add a category.** Add `{ id, label }` to `CATS` in `app.js` and use that id as `cat` on some products. The chip and its count appear on their own.
 
-**Change shipping.** Edit `FREE_SHIP` and `SHIP_FEE` at the top of the script. Also update the "Free shipping over $50" line in the intro markup.
+**Change shipping.** Edit `FREE_SHIP` and `SHIP_FEE` at the top of `app.js`. Also update the "Free shipping over $50" line in the intro markup in `index.html`.
 
-**Change colors or fonts.** Edit the tokens in `:root`, and the matching dark values in both dark-theme blocks. The fonts are loaded by the Google Fonts `<link>` near the top of the file.
+**Change colors or fonts.** Edit the tokens in `:root` in `styles.css`, and the matching dark values in both dark-theme blocks. The fonts are loaded by the Google Fonts `<link>` near the top of `index.html`.
 
-**Add a new drawing.** Add an `if (kind === "...")` branch to `art()` that returns SVG markup for a 120 × 120 canvas, then use that name as a product's `art`.
+**Add a new drawing.** Add an `if (kind === "...")` branch to `art()` in `app.js` that returns SVG markup for a 120 × 120 canvas, then use that name as a product's `art`.
 
 ## Limitations
 

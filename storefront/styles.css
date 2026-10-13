@@ -1,0 +1,252 @@
+/* Twenty Sides storefront styles. Loaded by index.html; see README.md for an overview. */
+
+/* ===== Design tokens =====
+   Every color and font is a CSS variable, so components never hard-code a color and
+   the dark theme only has to redefine the variables. */
+/* Layout: sticky header, filter row, a product grid that collapses to one column on phones, and a cart drawer from the right. */
+:root {
+  --bg: #fbfbfc;
+  --surface: #ffffff;
+  --panel: #f1f2f5;
+  --line: #e2e4ea;
+  --fg: #16181d;
+  --muted: #5d6270;
+  --accent: #a3213a;
+  --accent-fg: #ffffff;
+  --accent-soft: #f7e6ea;
+  --good: #1f7a4d;
+  --shadow: 0 12px 40px rgba(20, 22, 30, .14);
+  --font-display: "Schibsted Grotesk", "Helvetica Neue", Arial, sans-serif;
+  --font-body: "IBM Plex Sans", "Segoe UI", Roboto, Arial, sans-serif;
+  --font-mono: "IBM Plex Mono", ui-monospace, "SFMono-Regular", Menlo, monospace;
+  --radius: 10px;
+}
+/* Dark theme. Applied in two cases:
+   - the viewer's OS is in dark mode and the page has not been forced light (data-theme="light"), or
+   - the page is explicitly forced dark with data-theme="dark" on <html>.
+   Both blocks hold the same values; color-scheme: dark makes native inputs and scrollbars dark too. */
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #111318; --surface: #171a20; --panel: #1f232b; --line: #2c313b;
+    --fg: #eceef2; --muted: #9aa0ad; --accent: #e0566f; --accent-fg: #16080c;
+    --accent-soft: #3a1820; --good: #5cc28f; --shadow: 0 12px 40px rgba(0, 0, 0, .5);
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #111318; --surface: #171a20; --panel: #1f232b; --line: #2c313b;
+  --fg: #eceef2; --muted: #9aa0ad; --accent: #e0566f; --accent-fg: #16080c;
+  --accent-soft: #3a1820; --good: #5cc28f; --shadow: 0 12px 40px rgba(0, 0, 0, .5);
+  color-scheme: dark;
+}
+
+/* ===== Base ===== */
+* { box-sizing: border-box; }
+body {
+  background: var(--bg); color: var(--fg);
+  font-family: var(--font-body); font-size: 15px; line-height: 1.5;
+}
+button, input, select { font: inherit; color: inherit; }
+button { cursor: pointer; }
+:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+/* .wrap centers content and supplies the side gutter (24px desktop, 16px phones). */
+.wrap { max-width: 1180px; margin: 0 auto; padding-inline: 24px; }
+@media (max-width: 520px) { .wrap { padding-inline: 16px; } }
+
+/* ===== Header =====
+   Sticky to the top. The safe-area inset keeps it below a phone's notch or status bar. */
+header.top {
+  position: sticky; top: env(safe-area-inset-top, 0px); z-index: 20;
+  background: color-mix(in srgb, var(--bg) 95%, transparent);
+  backdrop-filter: blur(10px);
+  border-bottom: 1px solid var(--line);
+}
+.top-inner { display: flex; align-items: center; gap: 16px; padding-block: 14px; }
+.brand { display: flex; align-items: center; gap: 10px; text-decoration: none; color: var(--fg); flex-shrink: 0; }
+.brand svg { width: 28px; height: 28px; }
+.brand b { font-family: var(--font-display); font-weight: 700; font-size: 19px; letter-spacing: -.01em; }
+.search { flex: 1; min-width: 0; max-width: 420px; margin-left: auto; position: relative; }
+.search input {
+  width: 100%; padding: 9px 12px 9px 36px; border-radius: 999px;
+  border: 1px solid var(--line); background: var(--surface);
+}
+.search svg { position: absolute; left: 12px; top: 50%; transform: translateY(-50%); width: 16px; height: 16px; color: var(--muted); }
+.cart-btn {
+  display: inline-flex; align-items: center; gap: 8px; flex-shrink: 0;
+  padding: 9px 14px; border-radius: 999px; border: 1px solid var(--fg);
+  background: var(--fg); color: var(--bg); font-weight: 500;
+}
+.cart-btn svg { width: 18px; height: 18px; }
+.cart-count {
+  font-family: var(--font-mono); font-size: 12px; min-width: 20px; height: 20px; padding-inline: 5px;
+  border-radius: 999px; background: var(--accent); color: var(--accent-fg);
+  display: inline-grid; place-items: center; font-variant-numeric: tabular-nums;
+}
+/* On phones, hide the wordmark and the word "Cart" so the search box has room. */
+@media (max-width: 520px) {
+  .brand b { display: none; }
+  .cart-btn .label { display: none; }
+}
+
+/* ===== Intro ===== */
+.intro { padding-block: 40px 20px; display: grid; gap: 10px; }
+.eyebrow { font-family: var(--font-mono); font-size: 12px; letter-spacing: .08em; text-transform: uppercase; color: var(--accent); }
+.intro h1 {
+  margin: 0; font-family: var(--font-display); font-weight: 700;
+  font-size: clamp(28px, 4.4vw, 44px); line-height: 1.08; letter-spacing: -.02em;
+  text-wrap: balance; max-width: 20ch;
+}
+.intro p { margin: 0; color: var(--muted); max-width: 60ch; }
+.perks { display: flex; flex-wrap: wrap; gap: 8px 20px; margin-top: 6px; font-size: 13px; color: var(--muted); }
+.perks span { display: inline-flex; align-items: center; gap: 6px; }
+/* Small accent dot before each perk. */
+.perks span::before { content: ""; width: 6px; height: 6px; border-radius: 50%; background: var(--accent); }
+
+/* ===== Filter chips and sort ===== */
+.controls {
+  display: flex; flex-wrap: wrap; align-items: center; gap: 12px;
+  padding-block: 12px 20px;
+}
+.chips { display: flex; flex-wrap: wrap; gap: 8px; flex: 1; min-width: 0; }
+.chip {
+  padding: 7px 14px; border-radius: 999px; border: 1px solid var(--line);
+  background: var(--surface); font-size: 14px; color: var(--fg);
+}
+.chip:hover { border-color: var(--muted); }
+/* The selected category chip. aria-pressed is set by renderChips() in the script. */
+.chip[aria-pressed="true"] { background: var(--fg); color: var(--bg); border-color: var(--fg); }
+.chip .n { font-family: var(--font-mono); font-size: 12px; opacity: .6; margin-left: 4px; }
+.sort { display: flex; align-items: center; gap: 8px; font-size: 14px; color: var(--muted); }
+/* On narrow screens the chips stay in one row and scroll sideways instead of stacking. */
+@media (max-width: 640px) {
+  .chips { flex: 1 1 100%; flex-wrap: nowrap; overflow-x: auto; padding-bottom: 4px; scrollbar-width: none; }
+  .chip { white-space: nowrap; flex-shrink: 0; }
+}
+.sort select { padding: 7px 10px; border-radius: 8px; border: 1px solid var(--line); background: var(--surface); }
+
+/* ===== Product grid =====
+   auto-fill makes as many 240px+ columns as fit; phones get two columns, very narrow phones one. */
+.grid {
+  display: grid; gap: 20px;
+  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  padding-bottom: 64px;
+}
+@media (max-width: 560px) { .grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; } }
+@media (max-width: 380px) { .grid { grid-template-columns: 1fr; } }
+.card { display: flex; flex-direction: column; gap: 12px; min-width: 0; }
+/* .media is the square picture panel on each card. It is the positioning parent for the badge,
+   the roll button and the roll result, which sit in its corners. */
+.media {
+  position: relative; aspect-ratio: 1 / 1; max-width: 100%;
+  background: var(--panel); border-radius: var(--radius);
+  display: grid; place-items: center; overflow: hidden;
+}
+.media svg.art { width: 62%; height: 62%; }
+/* Test-roll animation: roll() adds .rolling for one spin, then removes it. */
+.media.rolling svg.art { animation: tumble .45s cubic-bezier(.2,.8,.2,1); }
+@keyframes tumble { 50% { transform: rotate(300deg) scale(.88); } to { transform: rotate(540deg); } }
+.badge {
+  position: absolute; top: 10px; left: 10px;
+  font-size: 12px; font-weight: 500; padding: 3px 8px; border-radius: 999px;
+  background: var(--surface); color: var(--fg); border: 1px solid var(--line);
+}
+/* Scarcity badges ("Only 3 left") use the accent color. */
+.badge.low { color: var(--accent); border-color: currentColor; }
+.roll-btn {
+  position: absolute; bottom: 10px; right: 10px;
+  font-family: var(--font-mono); font-size: 12px;
+  padding: 5px 10px; border-radius: 999px; border: 1px solid var(--line);
+  background: var(--surface);
+}
+.roll-btn:hover { border-color: var(--fg); }
+.roll-out {
+  position: absolute; bottom: 10px; left: 10px;
+  font-family: var(--font-mono); font-size: 12px; font-variant-numeric: tabular-nums;
+  padding: 5px 10px; border-radius: 999px; background: var(--fg); color: var(--bg);
+}
+/* Natural 20 or a d% roll of 100. */
+.roll-out.crit { background: var(--accent); color: var(--accent-fg); }
+.info { display: grid; gap: 2px; min-width: 0; }
+.info h3 { margin: 0; font-size: 15px; font-weight: 600; line-height: 1.3; }
+.spec { font-family: var(--font-mono); font-size: 12px; color: var(--muted); overflow-wrap: anywhere; }
+.buy { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-top: auto; }
+.price { font-family: var(--font-mono); font-size: 15px; font-weight: 500; font-variant-numeric: tabular-nums; }
+.add {
+  padding: 7px 14px; border-radius: 999px; border: 1px solid var(--fg);
+  background: transparent; font-size: 14px; font-weight: 500; white-space: nowrap;
+}
+.add:hover { background: var(--fg); color: var(--bg); }
+/* Brief confirmation state after clicking "Add to cart". */
+.add.added { background: var(--good); border-color: var(--good); color: #fff; }
+/* Shown when a search matches nothing. */
+.empty { grid-column: 1 / -1; padding: 48px 0; text-align: center; color: var(--muted); }
+.empty button { margin-top: 10px; }
+
+/* ===== Cart drawer =====
+   The drawer is always in the DOM; it sits off-screen (translateX(100%)) and slides in when
+   .open is added. The scrim is the dimmed backdrop behind it. */
+.scrim { position: fixed; inset: 0; background: rgba(10, 12, 16, .4); z-index: 40; }
+.drawer {
+  position: fixed; top: 0; right: 0; bottom: 0; z-index: 41;
+  width: min(420px, 100%); background: var(--surface); box-shadow: var(--shadow);
+  display: flex; flex-direction: column;
+  padding-top: env(safe-area-inset-top, 0px); padding-bottom: env(safe-area-inset-bottom, 0px);
+  transform: translateX(100%); transition: transform .28s ease;
+}
+.drawer.open { transform: none; }
+.drawer-head { display: flex; align-items: center; justify-content: space-between; padding: 18px 20px; border-bottom: 1px solid var(--line); }
+.drawer-head h2 { margin: 0; font-family: var(--font-display); font-size: 20px; }
+.icon-btn { width: 36px; height: 36px; border-radius: 50%; border: 1px solid var(--line); background: var(--surface); display: grid; place-items: center; }
+.icon-btn svg { width: 16px; height: 16px; }
+/* Free-shipping message and progress bar at the top of the drawer. */
+.ship { padding: 14px 20px; border-bottom: 1px solid var(--line); font-size: 13px; color: var(--muted); display: grid; gap: 8px; }
+.ship strong { color: var(--fg); font-weight: 600; }
+.bar { height: 4px; border-radius: 999px; background: var(--panel); overflow: hidden; }
+.bar i { display: block; height: 100%; background: var(--accent); transition: width .3s ease; }
+.lines { flex: 1; overflow-y: auto; padding: 8px 20px; }
+/* One cart line: thumbnail | name + quantity stepper | price + remove. */
+.line { display: grid; grid-template-columns: 64px 1fr auto; gap: 12px; align-items: center; padding-block: 12px; border-bottom: 1px solid var(--line); }
+.line:last-child { border-bottom: 0; }
+.thumb { width: 64px; height: 64px; border-radius: 8px; background: var(--panel); display: grid; place-items: center; }
+.thumb svg { width: 70%; height: 70%; }
+.line-info { min-width: 0; display: grid; gap: 6px; }
+.line-info b { font-weight: 600; font-size: 14px; line-height: 1.3; }
+.qty { display: inline-flex; align-items: center; border: 1px solid var(--line); border-radius: 999px; width: max-content; }
+.qty button { width: 28px; height: 28px; border: 0; background: none; border-radius: 50%; }
+.qty span { min-width: 22px; text-align: center; font-family: var(--font-mono); font-size: 13px; font-variant-numeric: tabular-nums; }
+.line-right { display: grid; justify-items: end; gap: 6px; }
+.line-right .price { font-size: 14px; }
+.remove { border: 0; background: none; padding: 0; font-size: 12px; color: var(--muted); text-decoration: underline; }
+.drawer-empty { padding: 48px 20px; text-align: center; color: var(--muted); }
+/* Subtotal, shipping, total and the checkout button, pinned to the bottom of the drawer. */
+.totals { border-top: 1px solid var(--line); padding: 16px 20px 20px; display: grid; gap: 8px; }
+.row { display: flex; justify-content: space-between; font-size: 14px; }
+.row span:last-child { font-family: var(--font-mono); font-variant-numeric: tabular-nums; }
+.row.total { font-size: 17px; font-weight: 600; padding-top: 6px; border-top: 1px dashed var(--line); }
+.checkout {
+  margin-top: 6px; padding: 13px; border-radius: 999px; border: 0;
+  background: var(--accent); color: var(--accent-fg); font-weight: 600; font-size: 15px;
+}
+.checkout:disabled { opacity: .45; cursor: not-allowed; }
+.note { font-size: 12px; color: var(--muted); text-align: center; margin: 0; }
+/* Order-confirmed screen that replaces the cart after checkout. */
+.done { padding: 40px 24px; text-align: center; display: grid; gap: 10px; justify-items: center; }
+.done h3 { margin: 0; font-family: var(--font-display); font-size: 22px; }
+.done p { margin: 0; color: var(--muted); max-width: 32ch; }
+.done .art { width: 72px; height: 72px; }
+
+/* Short status message at the bottom of the screen, e.g. "Added Brass d20". */
+.toast {
+  position: fixed; left: 50%; bottom: calc(20px + env(safe-area-inset-bottom, 0px)); z-index: 50;
+  transform: translateX(-50%); background: var(--fg); color: var(--bg);
+  padding: 10px 16px; border-radius: 999px; font-size: 14px; box-shadow: var(--shadow);
+  max-width: calc(100% - 32px);
+}
+footer { border-top: 1px solid var(--line); padding-block: 20px 28px; color: var(--muted); font-size: 13px; }
+
+/* Respect the OS "reduce motion" setting: no slides, no spin. */
+@media (prefers-reduced-motion: reduce) {
+  .drawer, .bar i { transition: none; }
+  .media.rolling svg.art { animation: none; }
+}
