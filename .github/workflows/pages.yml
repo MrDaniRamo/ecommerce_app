@@ -1,0 +1,51 @@
+# Publishes the storefront/ folder to GitHub Pages, so the shop is the site's home page:
+#   https://<owner>.github.io/<repo>/
+#
+# One-time setup: in the repo's Settings → Pages, set "Source" to "GitHub Actions".
+# After that, this runs on every push to main that changes the storefront (or this file),
+# and can also be run by hand from the Actions tab ("Run workflow").
+name: Deploy storefront to GitHub Pages
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "storefront/**"
+      - ".github/workflows/pages.yml"
+  workflow_dispatch:
+
+# The deploy step needs to write to Pages and prove who it is (id-token);
+# it only needs to read the repository contents.
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+# Run one deployment at a time. A newer push waits for the one in progress
+# instead of cancelling it partway through.
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Check out the repository
+        uses: actions/checkout@v4
+
+      - name: Set up Pages
+        uses: actions/configure-pages@v5
+
+      # The storefront is plain static files (no build step), so the folder is uploaded as is.
+      - name: Upload the storefront folder
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: storefront
+
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
