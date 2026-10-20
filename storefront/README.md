@@ -163,6 +163,10 @@ Every picture is SVG drawn from simple polygons on a 120 × 120 canvas. `art(kin
 
 **Add a new drawing.** Add an `if (kind === "...")` branch to `art()` in `art.js` that returns SVG markup for a 120 × 120 canvas, then use that name as a product's `art`.
 
+## Publishing
+
+The workflow in `.github/workflows/pages.yml` publishes this folder to GitHub Pages, at https://mrdaniramo.github.io/ecommerce_app/. It runs on every push to `main` that changes `storefront/`, and can be run by hand from the repo's **Actions** tab. Turning it on takes one setting: in **Settings → Pages**, set **Source** to **GitHub Actions**.
+
 ## Limitations
 
 - There is no backend. Products are hard-coded, and checkout only shows a confirmation.
