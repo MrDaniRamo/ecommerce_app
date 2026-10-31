@@ -1,27 +1,28 @@
 <meta charset="utf-8">
-<title>Twenty Sides Shop</title>
+<title>Los Dados del Norte</title>
 <!--
-  Twenty Sides: a demo storefront for D&D dice and table accessories, built with React.
+  Los Dados del Norte: a demo storefront for D&D dice and table accessories from
+  Monterrey, Nuevo León, built with React. The page is in Spanish, with an English switch.
 
   This file is only the shell. React draws everything inside #root, and picks the shop or a
   product page from the address hash (#shop, #product-<id>). The code is split into:
     styles.css  design tokens (colors, fonts) for light and dark themes, then component styles.
-    data.js     store settings, categories and the product catalog.
+    data.js     store settings, categories and the product catalog, in Spanish and English.
     art.js      the SVG drawing for each product.
-    app.js      the React components: header, shop grid, product page, cart drawer.
+    app.js      the React components (header, shop, product page, cart) and the interface text.
 
   React, ReactDOM and htm load from a CDN, so there is still no build step.
   See README.md in this folder for a full walkthrough.
 -->
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Schibsted+Grotesk:wght@500;700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Rye&family=Barlow+Condensed:wght@600;700&family=Barlow:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
 <link rel="stylesheet" href="styles.css">
 
 <!-- React renders the whole page here. -->
 <div id="root"></div>
 <!-- Shown only if the scripts fail to load. -->
-<noscript><p class="wrap">This shop needs JavaScript to run.</p></noscript>
+<noscript><p class="wrap">Esta tienda necesita JavaScript. This shop needs JavaScript to run.</p></noscript>
 
 <!-- Libraries: React and ReactDOM draw the page; htm lets app.js write components
      in a JSX-like syntax without a build step. Versions are pinned. -->
