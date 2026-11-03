@@ -4,31 +4,32 @@
    Every color and font is a CSS variable, so components never hard-code a color and
    the dark theme only has to redefine the variables.
 
-   The identity borrows from a norteño band on stage: a night-blue "band" color for the
-   header, hero and footer (the suits), cardinal red for actions, and gold trim (the
-   embroidery and accordion brass). The wordmark is set in Rye, a Western wood-type face
-   like the lettering on norteño concert posters; headings use Barlow Condensed and body
-   text Barlow. Specs and prices stay in a monospace face so the digits line up. */
-/* Layout: navy header and hero band with the Cerro de la Silla on the horizon, then a product
-   grid that collapses to two columns on phones, and a cart drawer from the right. */
+   The palette comes from the logo: saddle brown for text and main actions, gold for
+   highlights, and the cream of the hat for the "band" (the header, hero and footer, where
+   the logo sits). Headings use Barlow Condensed, body text Barlow, and specs and prices a
+   monospace face so the digits line up. */
+/* Layout: cream header and hero band with the logo and the Cerro de la Silla on the horizon,
+   then a product grid that collapses to two columns on phones, and a cart drawer from the right. */
 :root {
-  --bg: #fbfaf7;
+  --bg: #fdfaf4;
   --surface: #ffffff;
-  --panel: #eef0f5;
-  --line: #e0e2ea;
-  --fg: #151b2f;
-  --muted: #576079;
-  --accent: #c8202f;
-  --accent-fg: #ffffff;
-  --gold: #d9a521;
-  --good: #1f7a4d;
-  --band: #14213d;        /* header, hero and footer background */
-  --band-fg: #f6f2e7;     /* text on the band */
-  --band-muted: #b7bfd3;  /* secondary text on the band */
-  --band-line: #2c3a5c;   /* borders on the band */
-  --ridge: #22335a;       /* the far mountain ridge in the hero */
-  --shadow: 0 12px 40px rgba(20, 27, 47, .16);
-  --font-wordmark: "Rye", "Rockwell", Georgia, serif;
+  --panel: #f3ede3;
+  --line: #e7dece;
+  --fg: #2e2119;
+  --muted: #6e5c4e;
+  --accent: #5e4234;      /* logo brown: main buttons, selected states */
+  --accent-fg: #fff8ec;
+  --gold: #d4a12a;        /* logo gold: stars, highlights, progress */
+  --good: #3c7a3a;
+  --warn: #b3261e;        /* scarcity badges such as "Quedan 3" */
+  /* The band holds the logo. Its artwork is drawn for a light background, so the band
+     stays cream in both themes; only these band tokens keep their light values in dark mode. */
+  --band: #f6ecd9;
+  --band-fg: #5e4234;
+  --band-muted: #7a6353;
+  --band-line: #e3d2b4;
+  --ridge: #ead8b6;       /* the far mountain ridge in the hero */
+  --shadow: 0 12px 40px rgba(46, 33, 25, .16);
   --font-display: "Barlow Condensed", "Arial Narrow", "Helvetica Neue", Arial, sans-serif;
   --font-body: "Barlow", "Segoe UI", Roboto, Arial, sans-serif;
   --font-mono: "IBM Plex Mono", ui-monospace, "SFMono-Regular", Menlo, monospace;
@@ -37,22 +38,21 @@
 /* Dark theme. Applied in two cases:
    - the viewer's OS is in dark mode and the page has not been forced light (data-theme="light"), or
    - the page is explicitly forced dark with data-theme="dark" on <html>.
-   Both blocks hold the same values; color-scheme: dark makes native inputs and scrollbars dark too. */
+   Both blocks hold the same values; color-scheme: dark makes native inputs and scrollbars dark too.
+   In dark mode the main buttons switch from brown to gold, which reads better on the dark ground. */
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme="light"]) {
-    --bg: #0e1322; --surface: #141b2e; --panel: #1b2339; --line: #2a3451;
-    --fg: #eef0f6; --muted: #a2aac0; --accent: #ff5d68; --accent-fg: #1c0508;
-    --gold: #f2c14e; --good: #5cc28f;
-    --band: #090d19; --band-fg: #f6f2e7; --band-muted: #a9b1c6; --band-line: #222c47; --ridge: #18213a;
+    --bg: #17110d; --surface: #201813; --panel: #2a201a; --line: #3b2e25;
+    --fg: #f4ebdd; --muted: #c0ae99; --accent: #e3b64c; --accent-fg: #2a1d10;
+    --gold: #e9bb4d; --good: #6cc28a; --warn: #ff8a7a;
     --shadow: 0 12px 40px rgba(0, 0, 0, .55);
     color-scheme: dark;
   }
 }
 :root[data-theme="dark"] {
-  --bg: #0e1322; --surface: #141b2e; --panel: #1b2339; --line: #2a3451;
-  --fg: #eef0f6; --muted: #a2aac0; --accent: #ff5d68; --accent-fg: #1c0508;
-  --gold: #f2c14e; --good: #5cc28f;
-  --band: #090d19; --band-fg: #f6f2e7; --band-muted: #a9b1c6; --band-line: #222c47; --ridge: #18213a;
+  --bg: #17110d; --surface: #201813; --panel: #2a201a; --line: #3b2e25;
+  --fg: #f4ebdd; --muted: #c0ae99; --accent: #e3b64c; --accent-fg: #2a1d10;
+  --gold: #e9bb4d; --good: #6cc28a; --warn: #ff8a7a;
   --shadow: 0 12px 40px rgba(0, 0, 0, .55);
   color-scheme: dark;
 }
@@ -72,35 +72,34 @@ button { cursor: pointer; }
 @media (max-width: 520px) { .wrap { padding-inline: 16px; } }
 
 /* ===== Header =====
-   Sticky to the top, on the navy band. The safe-area inset keeps it below a phone's notch
-   or status bar. On the shop page it runs straight into the hero, which shares its color. */
+   Sticky to the top, on the cream band. The safe-area inset keeps it below a phone's notch
+   or status bar. On the shop page it runs straight into the hero, which shares its color.
+   Everything here uses band tokens, so it looks the same in light and dark mode. */
 header.top {
   position: sticky; top: env(safe-area-inset-top, 0px); z-index: 20;
   background: var(--band); color: var(--band-fg);
   border-bottom: 1px solid var(--band-line);
+  color-scheme: light;
 }
-header.top :focus-visible { outline-color: var(--gold); }
-.top-inner { display: flex; align-items: center; gap: 14px; padding-block: 12px; }
-.brand { display: flex; align-items: center; gap: 10px; text-decoration: none; color: var(--band-fg); flex-shrink: 0; }
-.brand-die { width: 34px; height: 34px; }
-.brand-text { display: grid; gap: 3px; line-height: 1; }
-.brand-text b { font-family: var(--font-wordmark); font-weight: 400; font-size: 20px; }
-.brand-text small { font-family: var(--font-mono); font-size: 10px; letter-spacing: .12em; text-transform: uppercase; color: var(--gold); }
+header.top :focus-visible { outline-color: var(--band-fg); }
+.top-inner { display: flex; align-items: center; gap: 14px; padding-block: 10px; }
+.brand { display: flex; align-items: center; flex-shrink: 0; }
+.brand-logo { display: block; height: 48px; width: auto; max-width: 100%; }
 .search { flex: 1; min-width: 0; max-width: 380px; margin-left: auto; position: relative; }
 .search input {
   width: 100%; padding: 9px 12px 9px 36px; border-radius: 999px;
-  border: 1px solid var(--band-line); background: color-mix(in srgb, var(--band-fg) 8%, transparent); color: var(--band-fg);
+  border: 1px solid var(--band-line); background: #fffdf8; color: var(--band-fg);
 }
 .search input::placeholder { color: var(--band-muted); }
 .search svg { position: absolute; left: 12px; top: 50%; transform: translateY(-50%); width: 16px; height: 16px; color: var(--band-muted); }
 
-/* ES / EN switch: two small buttons; the selected language is filled gold. */
-.lang { display: inline-flex; flex-shrink: 0; border: 1px solid var(--band-line); border-radius: 999px; padding: 2px; }
+/* ES / EN switch: two small buttons; the selected language is filled brown. */
+.lang { display: inline-flex; flex-shrink: 0; border: 1px solid var(--band-line); border-radius: 999px; padding: 2px; background: #fffdf8; }
 .lang button {
   border: 0; background: none; color: var(--band-muted); border-radius: 999px;
   padding: 5px 9px; font-family: var(--font-mono); font-size: 12px; font-weight: 500; letter-spacing: .04em;
 }
-.lang button[aria-pressed="true"] { background: var(--gold); color: var(--band); }
+.lang button[aria-pressed="true"] { background: var(--band-fg); color: var(--band); }
 
 .cart-btn {
   display: inline-flex; align-items: center; gap: 8px; flex-shrink: 0;
@@ -110,61 +109,65 @@ header.top :focus-visible { outline-color: var(--gold); }
 .cart-btn svg { width: 18px; height: 18px; }
 .cart-count {
   font-family: var(--font-mono); font-size: 12px; min-width: 20px; height: 20px; padding-inline: 5px;
-  border-radius: 999px; background: var(--accent); color: #fff;
+  border-radius: 999px; background: #d4a12a; color: #2e2119;
   display: inline-grid; place-items: center; font-variant-numeric: tabular-nums;
 }
-/* On phones the search box moves to its own row under the logo, switch and cart. */
-.brand { min-width: 0; }
-.brand-text { min-width: 0; }
-.brand-text b span { color: var(--gold); }
 /* On phones the header is a grid: logo | language | cart on the first row, search on the
-   second. The wordmark gets whatever width is left and shrinks before anything wraps. */
+   second. The logo gets whatever width is left and shrinks before anything wraps. */
 @media (max-width: 640px) {
   .top-inner { display: grid; grid-template-columns: minmax(0, 1fr) auto auto; gap: 10px; }
-  .brand-die { width: 28px; height: 28px; }
-  .brand-text small { display: none; }
-  /* Stack the wordmark: "Los Dados" over "del Norte". */
-  .brand-text b { font-size: 16px; line-height: 1.05; }
-  .brand-text b span { display: block; }
-  .lang button { padding: 4px 7px; }
-  .cart-btn { padding: 7px 12px; }
-  .brand { grid-row: 1; grid-column: 1; }
+  .brand { grid-row: 1; grid-column: 1; min-width: 0; }
+  .brand-logo { height: 40px; }
   .lang { grid-row: 1; grid-column: 2; }
-  .cart-btn { grid-row: 1; grid-column: 3; }
+  .cart-btn { grid-row: 1; grid-column: 3; padding: 7px 12px; }
+  .lang button { padding: 4px 7px; }
   .search { grid-row: 2; grid-column: 1 / -1; max-width: none; margin-left: 0; }
   .cart-btn .label { display: none; }
 }
 
 /* ===== Hero =====
-   The opening band on the shop page. It sits on the same navy as the header, and ends in
-   a silhouette of the Cerro de la Silla: a far ridge in a slightly lighter navy, and the
-   near ridge filled with the page background, so the page below reads as the ground. */
-.hero { background: var(--band); color: var(--band-fg); }
-.hero-inner { display: grid; gap: 14px; padding-block: 44px 8px; justify-items: start; }
-.eyebrow { font-family: var(--font-mono); font-size: 12px; letter-spacing: .1em; text-transform: uppercase; color: var(--accent); }
-.hero .eyebrow { color: var(--gold); }
-.wordmark {
-  margin: 0; font-family: var(--font-wordmark); font-weight: 400;
-  font-size: clamp(40px, 7.4vw, 84px); line-height: 1; letter-spacing: .01em; text-wrap: balance;
+   The opening band on the shop page: the stacked logo beside a short pitch. It sits on the
+   same cream as the header and ends in a silhouette of the Cerro de la Silla: a far ridge
+   in a darker cream, and the near ridge filled with the page background, so the page below
+   reads as the ground. On phones the logo sits above the text. */
+.hero { background: var(--band); color: var(--band-fg); color-scheme: light; }
+.hero-inner {
+  display: grid; grid-template-columns: minmax(0, 300px) minmax(0, 1fr);
+  gap: 24px 56px; align-items: center; padding-block: 32px 0;
 }
-.wordmark span { color: var(--gold); }
-.hero-tagline { margin: 0; color: var(--band-muted); max-width: 58ch; font-size: 17px; }
-.perks { list-style: none; margin: 4px 0 0; padding: 0; display: flex; flex-wrap: wrap; gap: 6px 22px; font-size: 14px; color: var(--band-fg); }
+.hero-logo { margin: 0; }
+.hero-logo img { display: block; width: 100%; height: auto; }
+.hero-copy { display: grid; gap: 12px; justify-items: start; min-width: 0; }
+.eyebrow { font-family: var(--font-mono); font-size: 12px; letter-spacing: .1em; text-transform: uppercase; color: var(--accent); }
+.hero .eyebrow { color: var(--band-muted); }
+.hero-headline {
+  margin: 0; font-family: var(--font-display); font-weight: 700;
+  font-size: clamp(32px, 4.6vw, 54px); line-height: 1; text-wrap: balance;
+}
+.hero-tagline { margin: 0; color: var(--band-muted); max-width: 52ch; font-size: 17px; }
+.perks { list-style: none; margin: 4px 0 0; padding: 0; display: flex; flex-wrap: wrap; gap: 6px 22px; font-size: 14px; font-weight: 500; }
 .perks li { display: inline-flex; align-items: center; gap: 8px; }
 /* A small gold star before each perk, like the stars stitched on a norteño band's jackets. */
-.perks li::before { content: "★"; color: var(--gold); font-size: 12px; }
-.sierra { display: block; width: 100%; height: clamp(44px, 8vw, 110px); margin-top: 12px; }
+.perks li::before { content: "★"; color: #d4a12a; font-size: 13px; }
+@media (max-width: 720px) {
+  .hero-inner { grid-template-columns: minmax(0, 1fr); justify-items: center; text-align: center; padding-top: 24px; }
+  .hero-logo { width: min(220px, 62vw); }
+  .hero-copy { justify-items: center; }
+  .perks { justify-content: center; }
+}
+.sierra { display: block; width: 100%; height: clamp(44px, 8vw, 110px); margin-top: 16px; }
 .sierra-back { fill: var(--ridge); }
 .sierra-front { fill: var(--bg); }
 
 /* A one-line hint between the hero and the filters. */
 .hint { margin: 0; padding-top: 4px; color: var(--muted); font-size: 14px; }
 
-/* ===== Footer ===== */
-footer { background: var(--band); color: var(--band-muted); font-size: 14px; padding-block: 24px 28px; margin-top: 24px; }
+/* ===== Footer =====
+   Back on the cream band, with the hat-die-mustache mark. */
+footer { background: var(--band); color: var(--band-muted); font-size: 14px; padding-block: 22px 26px; margin-top: 24px; border-top: 1px solid var(--band-line); }
 footer strong { color: var(--band-fg); font-weight: 600; }
-.foot-inner { display: flex; align-items: center; gap: 14px; }
-.foot-die { width: 36px; height: 36px; flex-shrink: 0; }
+.foot-inner { display: flex; align-items: center; gap: 16px; }
+.foot-mark { width: 56px; height: auto; flex-shrink: 0; }
 
 /* ===== Filter chips and sort ===== */
 .controls {
@@ -214,8 +217,8 @@ footer strong { color: var(--band-fg); font-weight: 600; }
   font-size: 12px; font-weight: 500; padding: 3px 8px; border-radius: 999px;
   background: var(--surface); color: var(--fg); border: 1px solid var(--line);
 }
-/* Scarcity badges ("Only 3 left") use the accent color. */
-.badge.low { color: var(--accent); border-color: currentColor; }
+/* Scarcity badges ("Quedan 3") use the warning color. */
+.badge.low { color: var(--warn); border-color: currentColor; }
 .roll-btn {
   position: absolute; bottom: 10px; right: 10px;
   font-family: var(--font-mono); font-size: 12px;

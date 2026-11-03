@@ -27,7 +27,6 @@ const STRINGS = {
   es: {
     pageTitle: "Los Dados del Norte",
     homeLabel: "Los Dados del Norte, inicio de la tienda",
-    place: "Monterrey, N.L.",
     searchPlaceholder: "Busca dados, charolas, bolsas…",
     searchLabel: "Buscar productos",
     cart: "Carrito",
@@ -35,7 +34,8 @@ const STRINGS = {
     language: "Idioma",
 
     heroEyebrow: "Dados y accesorios de rol · Monterrey, Nuevo León",
-    heroTagline: "Sets poliédricos y equipo para tu mesa de juego, con alma norteña. Cada set trae los 7 dados: d4, d6, d8, d10, d%, d12 y d20.",
+    heroHeadline: "Dados con alma norteña",
+    heroTagline: "Sets poliédricos y equipo para tu mesa de juego. Cada set trae los 7 dados: d4, d6, d8, d10, d%, d12 y d20.",
     heroHint: "Tira cualquier dado para probarlo, o abre un producto para ver sus detalles.",
     perkShip: amount => `Envío gratis a todo México desde ${amount}`,
     perkChecked: "Cada set revisado a mano",
@@ -101,7 +101,6 @@ const STRINGS = {
   en: {
     pageTitle: "Los Dados del Norte",
     homeLabel: "Los Dados del Norte, shop home",
-    place: "Monterrey, N.L.",
     searchPlaceholder: "Search dice, trays, bags…",
     searchLabel: "Search products",
     cart: "Cart",
@@ -109,7 +108,8 @@ const STRINGS = {
     language: "Language",
 
     heroEyebrow: "Tabletop dice & gear · Monterrey, Nuevo León",
-    heroTagline: "Polyhedral sets and table gear with a norteño soul. Every set is a full 7-piece kit: d4, d6, d8, d10, d%, d12 and d20.",
+    heroHeadline: "Dice with a norteño soul",
+    heroTagline: "Polyhedral sets and gear for your gaming table. Every set is a full 7-piece kit: d4, d6, d8, d10, d%, d12 and d20.",
     heroHint: "Test-roll any die, or open a product to see its details.",
     perkShip: amount => `Free shipping anywhere in Mexico from ${amount}`,
     perkChecked: "Each set checked by hand",
@@ -205,8 +205,22 @@ const reducedMotion = () => matchMedia("(prefers-reduced-motion: reduce)").match
 const productHref = id => `#product-${id}`;
 const catOf = id => CATS.find(c => c.id === id);
 
-// Logo colors: a red d20 with gold numerals, from the stage-suit palette in styles.css.
-const LOGO_PAL = ["#E8505B", "#C8202F", "#7E1420", "#F2C14E"];
+// The shop's logo files, in storefront/img (made from the artwork with a transparent
+// background). width/height are the files' own sizes, so the browser reserves the right
+// space before the image arrives and the page doesn't jump.
+//   stacked     hat, die and mustache above the name: the hero
+//   horizontal  the same mark beside the name: the header
+//   mark        the hat, die and mustache alone: the footer
+const LOGOS = {
+  stacked: { src: "img/logo-stacked.webp", width: 720, height: 1094 },
+  horizontal: { src: "img/logo-horizontal.webp", width: 355, height: 144 },
+  mark: { src: "img/logo-mark.webp", width: 197, height: 192 },
+};
+const Logo = ({ kind, alt = "", className, eager = false }) => {
+  const l = LOGOS[kind];
+  return html`<img className=${className} src=${l.src} width=${l.width} height=${l.height} alt=${alt}
+    decoding="async" loading=${eager ? "eager" : "lazy"} />`;
+};
 
 // ===== Hooks =====
 
@@ -375,11 +389,7 @@ function Header({ count, query, onQuery, onOpenCart, lang, setLang }) {
     <header className="top">
       <div className="wrap top-inner">
         <a className="brand" href="#shop" aria-label=${t.homeLabel}>
-          <${Art} kind="d20" pal=${LOGO_PAL} className="brand-die" />
-          <span className="brand-text">
-            <b>Los Dados <span>del Norte</span></b>
-            <small>${t.place}</small>
-          </span>
+          <${Logo} kind="horizontal" className="brand-logo" eager />
         </a>
         <label className="search">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
@@ -398,8 +408,8 @@ function Header({ count, query, onQuery, onOpenCart, lang, setLang }) {
 
 // ===== Shop page =====
 
-// The opening band: the name, where the shop is from, and the Cerro de la Silla on the
-// horizon. The mountain is Monterrey's best-known landmark: two peaks with a deep dip
+// The opening band: the stacked logo (it is the page's main heading, so its alt text is the
+// shop's name), what the shop is, and the Cerro de la Silla on the horizon. The mountain is Monterrey's best-known landmark: two peaks with a deep dip
 // between them, like a saddle, which gives it its name ("saddle hill"). The near ridge
 // draws that profile, with the right-hand peak the taller one.
 function Hero() {
@@ -407,14 +417,17 @@ function Hero() {
   return html`
     <section className="hero">
       <div className="wrap hero-inner">
-        <span className="eyebrow">${t.heroEyebrow}</span>
-        <h1 className="wordmark">Los Dados <span>del Norte</span></h1>
-        <p className="hero-tagline">${t.heroTagline}</p>
-        <ul className="perks">
-          <li>${t.perkShip(money(FREE_SHIP))}</li>
-          <li>${t.perkChecked}</li>
-          <li>${t.perkReturns}</li>
-        </ul>
+        <h1 className="hero-logo"><${Logo} kind="stacked" alt="Los Dados del Norte" eager /></h1>
+        <div className="hero-copy">
+          <span className="eyebrow">${t.heroEyebrow}</span>
+          <p className="hero-headline">${t.heroHeadline}</p>
+          <p className="hero-tagline">${t.heroTagline}</p>
+          <ul className="perks">
+            <li>${t.perkShip(money(FREE_SHIP))}</li>
+            <li>${t.perkChecked}</li>
+            <li>${t.perkReturns}</li>
+          </ul>
+        </div>
       </div>
       <svg className="sierra" viewBox="0 0 1200 140" preserveAspectRatio="none" aria-hidden="true">
         <path className="sierra-back" d="M0 140V96c90-10 170-34 260-30s150 22 230 8 140-46 230-40 160 40 250 34 150-22 230-20v92Z"/>
@@ -716,7 +729,7 @@ function App() {
       </main>
       <footer>
         <div className="wrap foot-inner">
-          <${Art} kind="d20" pal=${LOGO_PAL} className="foot-die" />
+          <${Logo} kind="mark" className="foot-mark" />
           <div><strong>${t.footerMade}</strong><br />${t.footerDemo}</div>
         </div>
       </footer>

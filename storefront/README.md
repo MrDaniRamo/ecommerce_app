@@ -11,6 +11,7 @@ It's built with React. Every product has its own page, and React builds that pag
 | `data.js` | Store settings, categories and the product catalog, with every text in Spanish and English. |
 | `art.js` | The SVG drawing for each product. |
 | `app.js` | The React components (header, shop, product page, cart drawer) and the interface text in both languages. |
+| `img/` | The logo, in three versions (see [Identity](#identity)). |
 
 Live page: https://claude.ai/artifact/XMVCeNVSqyYdztuNRa9jF9
 
@@ -131,11 +132,20 @@ Text comes from two places:
 
 ### Identity
 
-The look borrows from a norteño band on stage:
+Everything starts from the logo: a d20 wearing a cowboy hat and a norteño mustache, with the name in Western poster lettering.
 
-- **Colors.** A night-blue band for the header, hero and footer, like the band's suits. Cardinal red for actions such as Add to cart and Pay, and gold trim for highlights, like the embroidery and the accordion's brass.
-- **Type.** The wordmark is set in [Rye](https://fonts.google.com/specimen/Rye), a Western wood-type face like the lettering on norteño concert posters. Headings use Barlow Condensed, body text Barlow, and specs and prices IBM Plex Mono, so the digits line up.
-- **The hero.** It ends in a silhouette of the Cerro de la Silla, Monterrey's saddle-shaped mountain. The near ridge is filled with the page background, so the shop below reads as the ground.
+- **Logo.** Three versions, all in `img/`:
+
+  | File | Shows | Used in |
+  | --- | --- | --- |
+  | `logo-stacked.webp` | The mark above the name | The hero, as the page's main heading |
+  | `logo-horizontal.webp` | The mark beside the name | The header |
+  | `logo-mark.webp` | The hat, die and mustache alone | The footer |
+
+  They are made from the original artwork in `brand/` by `tools/prep_logos.py`, which removes the white background (including inside letters like O and D), trims the margins and exports sharp sizes. To change the logo, replace the files in `brand/` and run the command at the top of that script.
+- **Colors.** Taken from the logo: saddle brown for text and main buttons, gold for highlights such as the perk stars and the cart count, and the cream of the hat for the band behind the logo (header, hero and footer). The logo is drawn for a light background, so the band stays cream in dark mode too. Below it the page turns dark, and the main buttons switch from brown to gold. Scarcity badges like "Quedan 3" have their own warning red.
+- **Type.** Headings use Barlow Condensed, body text Barlow, and specs and prices IBM Plex Mono, so the digits line up.
+- **The hero.** The stacked logo sits beside the pitch ("Dados con alma norteña") and the perks; on phones it sits above them. The band ends in a silhouette of the Cerro de la Silla, Monterrey's saddle-shaped mountain. The near ridge is filled with the page background, so the shop below reads as the ground.
 - **Details.** Gold stars mark the perks, like the stars stitched on a band's jackets, and the footer reads "Hecho con orgullo en Monterrey, Nuevo León."
 
 ### Drawings (`art.js`)
@@ -188,7 +198,7 @@ Every picture is SVG drawn from simple polygons on a 120 × 120 canvas. `art(kin
 
 **Change the product page layout.** Edit `ProductPage` in `app.js` for content and order, and the "Product page" block in `styles.css` for layout.
 
-**Change colors or fonts.** Edit the tokens in `:root` in `styles.css`, and the matching dark values in both dark-theme blocks. The fonts are loaded by the Google Fonts `<link>` near the top of `index.html`.
+**Change colors or fonts.** Edit the tokens in `:root` in `styles.css`, and the matching dark values in both dark-theme blocks. The `--band…` tokens are the cream behind the logo and are meant to stay light. The fonts are loaded by the Google Fonts `<link>` near the top of `index.html`.
 
 **Add a new drawing.** Add an `if (kind === "...")` branch to `art()` in `art.js` that returns SVG markup for a 120 × 120 canvas, then use that name as a product's `art`.
 
