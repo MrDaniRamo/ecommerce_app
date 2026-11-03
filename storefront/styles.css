@@ -1,42 +1,59 @@
-/* Twenty Sides storefront styles. Loaded by index.html; see README.md for an overview. */
+/* Los Dados del Norte storefront styles. Loaded by index.html; see README.md for an overview. */
 
 /* ===== Design tokens =====
    Every color and font is a CSS variable, so components never hard-code a color and
-   the dark theme only has to redefine the variables. */
-/* Layout: sticky header, filter row, a product grid that collapses to one column on phones, and a cart drawer from the right. */
+   the dark theme only has to redefine the variables.
+
+   The palette comes from the logo: saddle brown for text and main actions, gold for
+   highlights, and the cream of the hat for the "band" (the header, hero and footer, where
+   the logo sits). Headings use Barlow Condensed, body text Barlow, and specs and prices a
+   monospace face so the digits line up. */
+/* Layout: cream header and hero band with the logo and the Cerro de la Silla on the horizon,
+   then a product grid that collapses to two columns on phones, and a cart drawer from the right. */
 :root {
-  --bg: #fbfbfc;
+  --bg: #fdfaf4;
   --surface: #ffffff;
-  --panel: #f1f2f5;
-  --line: #e2e4ea;
-  --fg: #16181d;
-  --muted: #5d6270;
-  --accent: #a3213a;
-  --accent-fg: #ffffff;
-  --accent-soft: #f7e6ea;
-  --good: #1f7a4d;
-  --shadow: 0 12px 40px rgba(20, 22, 30, .14);
-  --font-display: "Schibsted Grotesk", "Helvetica Neue", Arial, sans-serif;
-  --font-body: "IBM Plex Sans", "Segoe UI", Roboto, Arial, sans-serif;
+  --panel: #f3ede3;
+  --line: #e7dece;
+  --fg: #2e2119;
+  --muted: #6e5c4e;
+  --accent: #5e4234;      /* logo brown: main buttons, selected states */
+  --accent-fg: #fff8ec;
+  --gold: #d4a12a;        /* logo gold: stars, highlights, progress */
+  --good: #3c7a3a;
+  --warn: #b3261e;        /* scarcity badges such as "Quedan 3" */
+  /* The band holds the logo. Its artwork is drawn for a light background, so the band
+     stays cream in both themes; only these band tokens keep their light values in dark mode. */
+  --band: #f6ecd9;
+  --band-fg: #5e4234;
+  --band-muted: #7a6353;
+  --band-line: #e3d2b4;
+  --ridge: #ead8b6;       /* the far mountain ridge in the hero */
+  --shadow: 0 12px 40px rgba(46, 33, 25, .16);
+  --font-display: "Barlow Condensed", "Arial Narrow", "Helvetica Neue", Arial, sans-serif;
+  --font-body: "Barlow", "Segoe UI", Roboto, Arial, sans-serif;
   --font-mono: "IBM Plex Mono", ui-monospace, "SFMono-Regular", Menlo, monospace;
   --radius: 10px;
 }
 /* Dark theme. Applied in two cases:
    - the viewer's OS is in dark mode and the page has not been forced light (data-theme="light"), or
    - the page is explicitly forced dark with data-theme="dark" on <html>.
-   Both blocks hold the same values; color-scheme: dark makes native inputs and scrollbars dark too. */
+   Both blocks hold the same values; color-scheme: dark makes native inputs and scrollbars dark too.
+   In dark mode the main buttons switch from brown to gold, which reads better on the dark ground. */
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme="light"]) {
-    --bg: #111318; --surface: #171a20; --panel: #1f232b; --line: #2c313b;
-    --fg: #eceef2; --muted: #9aa0ad; --accent: #e0566f; --accent-fg: #16080c;
-    --accent-soft: #3a1820; --good: #5cc28f; --shadow: 0 12px 40px rgba(0, 0, 0, .5);
+    --bg: #17110d; --surface: #201813; --panel: #2a201a; --line: #3b2e25;
+    --fg: #f4ebdd; --muted: #c0ae99; --accent: #e3b64c; --accent-fg: #2a1d10;
+    --gold: #e9bb4d; --good: #6cc28a; --warn: #ff8a7a;
+    --shadow: 0 12px 40px rgba(0, 0, 0, .55);
     color-scheme: dark;
   }
 }
 :root[data-theme="dark"] {
-  --bg: #111318; --surface: #171a20; --panel: #1f232b; --line: #2c313b;
-  --fg: #eceef2; --muted: #9aa0ad; --accent: #e0566f; --accent-fg: #16080c;
-  --accent-soft: #3a1820; --good: #5cc28f; --shadow: 0 12px 40px rgba(0, 0, 0, .5);
+  --bg: #17110d; --surface: #201813; --panel: #2a201a; --line: #3b2e25;
+  --fg: #f4ebdd; --muted: #c0ae99; --accent: #e3b64c; --accent-fg: #2a1d10;
+  --gold: #e9bb4d; --good: #6cc28a; --warn: #ff8a7a;
+  --shadow: 0 12px 40px rgba(0, 0, 0, .55);
   color-scheme: dark;
 }
 
@@ -44,7 +61,7 @@
 * { box-sizing: border-box; }
 body {
   background: var(--bg); color: var(--fg);
-  font-family: var(--font-body); font-size: 15px; line-height: 1.5;
+  font-family: var(--font-body); font-size: 16px; line-height: 1.5;
 }
 button, input, select { font: inherit; color: inherit; }
 button { cursor: pointer; }
@@ -55,53 +72,102 @@ button { cursor: pointer; }
 @media (max-width: 520px) { .wrap { padding-inline: 16px; } }
 
 /* ===== Header =====
-   Sticky to the top. The safe-area inset keeps it below a phone's notch or status bar. */
+   Sticky to the top, on the cream band. The safe-area inset keeps it below a phone's notch
+   or status bar. On the shop page it runs straight into the hero, which shares its color.
+   Everything here uses band tokens, so it looks the same in light and dark mode. */
 header.top {
   position: sticky; top: env(safe-area-inset-top, 0px); z-index: 20;
-  background: color-mix(in srgb, var(--bg) 95%, transparent);
-  backdrop-filter: blur(10px);
-  border-bottom: 1px solid var(--line);
+  background: var(--band); color: var(--band-fg);
+  border-bottom: 1px solid var(--band-line);
+  color-scheme: light;
 }
-.top-inner { display: flex; align-items: center; gap: 16px; padding-block: 14px; }
-.brand { display: flex; align-items: center; gap: 10px; text-decoration: none; color: var(--fg); flex-shrink: 0; }
-.brand svg { width: 28px; height: 28px; }
-.brand b { font-family: var(--font-display); font-weight: 700; font-size: 19px; letter-spacing: -.01em; }
-.search { flex: 1; min-width: 0; max-width: 420px; margin-left: auto; position: relative; }
+header.top :focus-visible { outline-color: var(--band-fg); }
+.top-inner { display: flex; align-items: center; gap: 14px; padding-block: 10px; }
+.brand { display: flex; align-items: center; flex-shrink: 0; }
+.brand-logo { display: block; height: 48px; width: auto; max-width: 100%; }
+.search { flex: 1; min-width: 0; max-width: 380px; margin-left: auto; position: relative; }
 .search input {
   width: 100%; padding: 9px 12px 9px 36px; border-radius: 999px;
-  border: 1px solid var(--line); background: var(--surface);
+  border: 1px solid var(--band-line); background: #fffdf8; color: var(--band-fg);
 }
-.search svg { position: absolute; left: 12px; top: 50%; transform: translateY(-50%); width: 16px; height: 16px; color: var(--muted); }
+.search input::placeholder { color: var(--band-muted); }
+.search svg { position: absolute; left: 12px; top: 50%; transform: translateY(-50%); width: 16px; height: 16px; color: var(--band-muted); }
+
+/* ES / EN switch: two small buttons; the selected language is filled brown. */
+.lang { display: inline-flex; flex-shrink: 0; border: 1px solid var(--band-line); border-radius: 999px; padding: 2px; background: #fffdf8; }
+.lang button {
+  border: 0; background: none; color: var(--band-muted); border-radius: 999px;
+  padding: 5px 9px; font-family: var(--font-mono); font-size: 12px; font-weight: 500; letter-spacing: .04em;
+}
+.lang button[aria-pressed="true"] { background: var(--band-fg); color: var(--band); }
+
 .cart-btn {
   display: inline-flex; align-items: center; gap: 8px; flex-shrink: 0;
-  padding: 9px 14px; border-radius: 999px; border: 1px solid var(--fg);
-  background: var(--fg); color: var(--bg); font-weight: 500;
+  padding: 8px 14px; border-radius: 999px; border: 0;
+  background: var(--band-fg); color: var(--band); font-weight: 600;
 }
 .cart-btn svg { width: 18px; height: 18px; }
 .cart-count {
   font-family: var(--font-mono); font-size: 12px; min-width: 20px; height: 20px; padding-inline: 5px;
-  border-radius: 999px; background: var(--accent); color: var(--accent-fg);
+  border-radius: 999px; background: #d4a12a; color: #2e2119;
   display: inline-grid; place-items: center; font-variant-numeric: tabular-nums;
 }
-/* On phones, hide the wordmark and the word "Cart" so the search box has room. */
-@media (max-width: 520px) {
-  .brand b { display: none; }
+/* On phones the header is a grid: logo | language | cart on the first row, search on the
+   second. The logo gets whatever width is left and shrinks before anything wraps. */
+@media (max-width: 640px) {
+  .top-inner { display: grid; grid-template-columns: minmax(0, 1fr) auto auto; gap: 10px; }
+  .brand { grid-row: 1; grid-column: 1; min-width: 0; }
+  .brand-logo { height: 40px; }
+  .lang { grid-row: 1; grid-column: 2; }
+  .cart-btn { grid-row: 1; grid-column: 3; padding: 7px 12px; }
+  .lang button { padding: 4px 7px; }
+  .search { grid-row: 2; grid-column: 1 / -1; max-width: none; margin-left: 0; }
   .cart-btn .label { display: none; }
 }
 
-/* ===== Intro ===== */
-.intro { padding-block: 40px 20px; display: grid; gap: 10px; }
-.eyebrow { font-family: var(--font-mono); font-size: 12px; letter-spacing: .08em; text-transform: uppercase; color: var(--accent); }
-.intro h1 {
-  margin: 0; font-family: var(--font-display); font-weight: 700;
-  font-size: clamp(28px, 4.4vw, 44px); line-height: 1.08; letter-spacing: -.02em;
-  text-wrap: balance; max-width: 20ch;
+/* ===== Hero =====
+   The opening band on the shop page: the stacked logo beside a short pitch. It sits on the
+   same cream as the header and ends in a silhouette of the Cerro de la Silla: a far ridge
+   in a darker cream, and the near ridge filled with the page background, so the page below
+   reads as the ground. On phones the logo sits above the text. */
+.hero { background: var(--band); color: var(--band-fg); color-scheme: light; }
+.hero-inner {
+  display: grid; grid-template-columns: minmax(0, 300px) minmax(0, 1fr);
+  gap: 24px 56px; align-items: center; padding-block: 32px 0;
 }
-.intro p { margin: 0; color: var(--muted); max-width: 60ch; }
-.perks { display: flex; flex-wrap: wrap; gap: 8px 20px; margin-top: 6px; font-size: 13px; color: var(--muted); }
-.perks span { display: inline-flex; align-items: center; gap: 6px; }
-/* Small accent dot before each perk. */
-.perks span::before { content: ""; width: 6px; height: 6px; border-radius: 50%; background: var(--accent); }
+.hero-logo { margin: 0; }
+.hero-logo img { display: block; width: 100%; height: auto; }
+.hero-copy { display: grid; gap: 12px; justify-items: start; min-width: 0; }
+.eyebrow { font-family: var(--font-mono); font-size: 12px; letter-spacing: .1em; text-transform: uppercase; color: var(--accent); }
+.hero .eyebrow { color: var(--band-muted); }
+.hero-headline {
+  margin: 0; font-family: var(--font-display); font-weight: 700;
+  font-size: clamp(32px, 4.6vw, 54px); line-height: 1; text-wrap: balance;
+}
+.hero-tagline { margin: 0; color: var(--band-muted); max-width: 52ch; font-size: 17px; }
+.perks { list-style: none; margin: 4px 0 0; padding: 0; display: flex; flex-wrap: wrap; gap: 6px 22px; font-size: 14px; font-weight: 500; }
+.perks li { display: inline-flex; align-items: center; gap: 8px; }
+/* A small gold star before each perk, like the stars stitched on a norteño band's jackets. */
+.perks li::before { content: "★"; color: #d4a12a; font-size: 13px; }
+@media (max-width: 720px) {
+  .hero-inner { grid-template-columns: minmax(0, 1fr); justify-items: center; text-align: center; padding-top: 24px; }
+  .hero-logo { width: min(220px, 62vw); }
+  .hero-copy { justify-items: center; }
+  .perks { justify-content: center; }
+}
+.sierra { display: block; width: 100%; height: clamp(44px, 8vw, 110px); margin-top: 16px; }
+.sierra-back { fill: var(--ridge); }
+.sierra-front { fill: var(--bg); }
+
+/* A one-line hint between the hero and the filters. */
+.hint { margin: 0; padding-top: 4px; color: var(--muted); font-size: 14px; }
+
+/* ===== Footer =====
+   Back on the cream band, with the hat-die-mustache mark. */
+footer { background: var(--band); color: var(--band-muted); font-size: 14px; padding-block: 22px 26px; margin-top: 24px; border-top: 1px solid var(--band-line); }
+footer strong { color: var(--band-fg); font-weight: 600; }
+.foot-inner { display: flex; align-items: center; gap: 16px; }
+.foot-mark { width: 56px; height: auto; flex-shrink: 0; }
 
 /* ===== Filter chips and sort ===== */
 .controls {
@@ -151,8 +217,8 @@ header.top {
   font-size: 12px; font-weight: 500; padding: 3px 8px; border-radius: 999px;
   background: var(--surface); color: var(--fg); border: 1px solid var(--line);
 }
-/* Scarcity badges ("Only 3 left") use the accent color. */
-.badge.low { color: var(--accent); border-color: currentColor; }
+/* Scarcity badges ("Quedan 3") use the warning color. */
+.badge.low { color: var(--warn); border-color: currentColor; }
 .roll-btn {
   position: absolute; bottom: 10px; right: 10px;
   font-family: var(--font-mono); font-size: 12px;
@@ -176,6 +242,12 @@ header.top {
   padding: 7px 14px; border-radius: 999px; border: 1px solid var(--fg);
   background: transparent; font-size: 14px; font-weight: 500; white-space: nowrap;
 }
+/* In the two-column phone grid the price sits above a full-width button, so longer
+   labels such as "Agregar al carrito" fit inside the card. */
+@media (max-width: 560px) {
+  .card .buy { flex-direction: column; align-items: stretch; gap: 8px; }
+  .card .add { width: 100%; }
+}
 .add:hover { background: var(--fg); color: var(--bg); }
 /* Brief confirmation state after clicking "Add to cart". */
 .add.added { background: var(--good); border-color: var(--good); color: #fff; }
@@ -197,7 +269,7 @@ header.top {
 .drawer.open { transform: none; }
 .drawer-body { display: flex; flex-direction: column; flex: 1; min-height: 0; }
 .drawer-head { display: flex; align-items: center; justify-content: space-between; padding: 18px 20px; border-bottom: 1px solid var(--line); }
-.drawer-head h2 { margin: 0; font-family: var(--font-display); font-size: 20px; }
+.drawer-head h2 { margin: 0; font-family: var(--font-display); font-size: 24px; font-weight: 700; }
 .icon-btn { width: 36px; height: 36px; border-radius: 50%; border: 1px solid var(--line); background: var(--surface); display: grid; place-items: center; }
 .icon-btn svg { width: 16px; height: 16px; }
 /* Free-shipping message and progress bar at the top of the drawer. */
@@ -235,7 +307,7 @@ header.top {
 .note { font-size: 12px; color: var(--muted); text-align: center; margin: 0; }
 /* Order-confirmed screen that replaces the cart after checkout. */
 .done { padding: 40px 24px; text-align: center; display: grid; gap: 10px; justify-items: center; }
-.done h3 { margin: 0; font-family: var(--font-display); font-size: 22px; }
+.done h3 { margin: 0; font-family: var(--font-display); font-size: 26px; font-weight: 700; }
 .done p { margin: 0; color: var(--muted); max-width: 32ch; }
 .done .art { width: 72px; height: 72px; }
 
@@ -246,7 +318,6 @@ header.top {
   padding: 10px 16px; border-radius: 999px; font-size: 14px; box-shadow: var(--shadow);
   max-width: calc(100% - 32px);
 }
-footer { border-top: 1px solid var(--line); padding-block: 20px 28px; color: var(--muted); font-size: 13px; }
 
 /* ===== Clickable cards =====
    The card's picture and name link to the product page. The picture link is an invisible
@@ -278,7 +349,7 @@ footer { border-top: 1px solid var(--line); padding-block: 20px 28px; color: var
 .pdp-info { display: grid; gap: 12px; min-width: 0; }
 .pdp-info h1 {
   margin: 0; font-family: var(--font-display); font-weight: 700;
-  font-size: clamp(28px, 3.6vw, 38px); line-height: 1.1; letter-spacing: -.02em; text-wrap: balance;
+  font-size: clamp(32px, 4.2vw, 46px); line-height: 1.05; text-wrap: balance;
 }
 .pdp-info h1:focus { outline: none; }
 .pdp-price { font-family: var(--font-mono); font-size: 22px; font-weight: 500; font-variant-numeric: tabular-nums; }
@@ -286,10 +357,10 @@ footer { border-top: 1px solid var(--line); padding-block: 20px 28px; color: var
 .pdp-buy { display: flex; flex-wrap: wrap; align-items: center; gap: 12px; margin-top: 8px; }
 .pdp-buy .qty button { width: 40px; height: 40px; }
 .pdp-buy .qty span { min-width: 28px; font-size: 15px; }
-.add-lg { padding: 11px 24px; font-size: 15px; background: var(--fg); color: var(--bg); }
-.add-lg:hover { background: color-mix(in srgb, var(--fg) 85%, var(--bg)); }
+.add-lg { padding: 11px 24px; font-size: 16px; font-weight: 600; background: var(--accent); border-color: var(--accent); color: var(--accent-fg); }
+.add-lg:hover { background: color-mix(in srgb, var(--accent) 85%, var(--fg)); color: var(--accent-fg); }
 .pdp-ship { margin: 0; font-size: 13px; color: var(--muted); }
-.pdp-h2 { margin: 16px 0 0; font-family: var(--font-display); font-size: 18px; font-weight: 700; }
+.pdp-h2 { margin: 16px 0 0; font-family: var(--font-display); font-size: 22px; font-weight: 700; }
 /* Details table: label column and value column, one row per detail. */
 .details { margin: 0; display: grid; border-top: 1px solid var(--line); }
 .details div { display: grid; grid-template-columns: 9em 1fr; gap: 12px; padding-block: 10px; border-bottom: 1px solid var(--line); font-size: 14px; }
@@ -298,7 +369,7 @@ footer { border-top: 1px solid var(--line); padding-block: 20px 28px; color: var
 .related { padding-bottom: 32px; }
 .related .grid { padding-top: 16px; }
 .missing { padding-block: 64px; display: grid; gap: 12px; justify-items: start; }
-.missing h1 { margin: 0; font-family: var(--font-display); }
+.missing h1 { margin: 0; font-family: var(--font-display); font-size: 36px; }
 .missing p { margin: 0; color: var(--muted); }
 a.chip { text-decoration: none; }
 

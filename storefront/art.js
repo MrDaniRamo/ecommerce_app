@@ -1,4 +1,4 @@
-// Twenty Sides storefront drawings: every product picture is drawn here as SVG markup.
+// Los Dados del Norte storefront drawings: every product picture is drawn here as SVG markup.
 // Loaded after data.js and before app.js; app.js calls art() to draw products and the logo.
 
 // ===== Product art =====
